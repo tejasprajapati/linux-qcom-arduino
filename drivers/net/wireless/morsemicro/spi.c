@@ -1397,9 +1397,8 @@ static int morse_spi_probe(struct spi_device *spi)
 	 * 2. Invert GPIO polarity in the spi_set_cs function when SPI mode is set to SPI_CS_HIGH.
 	 */
 #ifdef SPI_CONTROLLER_ENABLE_CS_GPIOD
-	spi->controller->flags |= SPI_CONTROLLER_ENABLE_CS_GPIOD;
-#else
-#warning "SPI_CONTROLLER_ENABLE_CS_GPIOD macro not defined"
+	if (spi->controller)
+		spi->controller->flags |= SPI_CONTROLLER_ENABLE_CS_GPIOD;
 #endif
 #endif
 	morse_spi_xfer_init(mspi);

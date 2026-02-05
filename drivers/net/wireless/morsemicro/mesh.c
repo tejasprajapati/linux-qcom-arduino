@@ -10,6 +10,11 @@
 #include "vendor.h"
 #include "debug.h"
 
+#ifndef from_timer
+#define from_timer(var, callback_timer, timer_fieldname) \
+	container_of(callback_timer, typeof(*var), timer_fieldname)
+#endif
+
 /**
  * Periodic Time to trigger probe req in Mesh mode for discovery of new neighbor peers
  */
@@ -640,7 +645,7 @@ int morse_mesh_deinit(struct morse_vif *mors_vif)
 {
 	struct morse_mesh *mesh = mors_vif->mesh;
 
-	del_timer_sync(&mesh->mesh_probe_timer);
+	timer_delete_sync(&mesh->mesh_probe_timer);
 	kfree(mors_vif->mesh);
 
 	return 0;

@@ -39,6 +39,12 @@ static int fixed_guard __read_mostly;
 module_param(fixed_guard, int, 0644);
 MODULE_PARM_DESC(fixed_guard, "Set the fixed guard value (work when enable_fixed_rate is on)");
 
+/* Provide from_timer compatibility when kernel exposes timer_container_of only */
+#ifndef from_timer
+#define from_timer(var, callback_timer, timer_fieldname) \
+	container_of(callback_timer, typeof(*var), timer_fieldname)
+#endif
+
 #define MORSE_RC_MMRC_BW_TO_FLAGS(X)				\
 	(((X) == MMRC_BW_1MHZ) ? MORSE_SKB_RATE_FLAGS_1MHZ :	\
 	((X) == MMRC_BW_2MHZ) ? MORSE_SKB_RATE_FLAGS_2MHZ :	\
@@ -122,7 +128,7 @@ int morse_rc_init(struct morse *mors)
 int morse_rc_deinit(struct morse *mors)
 {
 	cancel_work_sync(&mors->mrc.work);
-	del_timer_sync(&mors->mrc.timer);
+	timer_delete_sync(&mors->mrc.timer);
 
 	return 0;
 }

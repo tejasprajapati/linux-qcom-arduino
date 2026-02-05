@@ -11,6 +11,9 @@
 #include <linux/leds.h>
 #include <linux/workqueue.h>
 
+int morse_led_register(struct morse *mors, struct morse_led *led, int pin_num,
+			const char *name, enum led_mode mode);
+
 static void morse_led_callback(struct led_classdev *led_cdev, enum led_brightness brightness)
 {
 	struct morse_led *led = container_of(led_cdev, struct morse_led, led_cdev);

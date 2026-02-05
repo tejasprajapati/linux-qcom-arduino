@@ -7,6 +7,7 @@
  */
 #include <linux/skbuff.h>
 #include <linux/crc32.h>
+#include <net/cfg80211.h>
 #include "morse.h"
 #include "command.h"
 #include "skb_header.h"

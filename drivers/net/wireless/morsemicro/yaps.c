@@ -16,6 +16,12 @@
 #include "skbq.h"
 #include "yaps-hw.h"
 
+/* Provide from_timer compatibility when kernel exposes timer_container_of only */
+#ifndef from_timer
+#define from_timer(var, callback_timer, timer_fieldname) \
+	container_of(callback_timer, typeof(*var), timer_fieldname)
+#endif
+
 #define BENCHMARK_PKT_LEN		(1496)
 #define BENCHMARK_WAIT_MS		(5000)
 
@@ -88,7 +94,7 @@ static int yaps_irq_handler(struct morse *mors, u32 status)
 
 	if (test_bit(MORSE_INT_YAPS_FC_PACKET_FREED_UP_IRQN, (unsigned long *)&status)) {
 		/* No need for the timer anymore */
-		del_timer_sync(&mors->chip_if->yaps->chip_queue_full.timer);
+		timer_delete_sync(&mors->chip_if->yaps->chip_queue_full.timer);
 		set_bit(MORSE_TX_PACKET_FREED_UP_PEND, &mors->chip_if->event_flags);
 	}
 
@@ -639,7 +645,7 @@ static int morse_tx_chip_full_timer_init(struct morse_yaps *yaps)
 
 static int morse_tx_chip_full_timer_finish(struct morse_yaps *yaps)
 {
-	del_timer_sync(&yaps->chip_queue_full.timer);
+	timer_delete_sync(&yaps->chip_queue_full.timer);
 
 	return 0;
 }

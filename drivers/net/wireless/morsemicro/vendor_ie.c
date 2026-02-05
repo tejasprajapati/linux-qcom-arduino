@@ -145,10 +145,9 @@ static int morse_vendor_ie_process_rx_ies(struct ieee80211_vif *vif, const u8 *i
  * @bcn S1G Beacon frame
  * @return pointer to start of information elements
  */
-static inline u8 *get_elements_from_s1g_beacon(struct ieee80211_ext *bcn)
+static inline void get_elements_from_s1g_beacon(struct ieee80211_ext *bcn, const u8 *variable, size_t variable_len)
 {
-	return (ieee80211_is_s1g_short_beacon(bcn->frame_control) ?
-		bcn->u.s1g_short_beacon.variable : bcn->u.s1g_beacon.variable);
+	ieee80211_is_s1g_short_beacon(bcn->frame_control, variable, variable_len);
 }
 
 /**
@@ -362,12 +361,17 @@ void morse_vendor_ie_process_rx_mgmt(struct ieee80211_vif *vif, const struct sk_
 	const u8 *elements;
 	u16 elem_len;
 
+	const u8 *variable = skb->data;
+	size_t variable_len = skb->len;
+
+
 	if (list_empty(&mors_vif->vendor_ie.oui_filter_list))
 		return;
 
 	if (ieee80211_is_s1g_beacon(mgmt->frame_control)) {
 		type = MORSE_VENDOR_IE_TYPE_BEACON;
-		elements = get_elements_from_s1g_beacon((struct ieee80211_ext *)mgmt);
+		get_elements_from_s1g_beacon((struct ieee80211_ext *)mgmt, variable, variable_len);
+		elements = variable;
 	} else if (ieee80211_is_probe_req(mgmt->frame_control)) {
 		type = MORSE_VENDOR_IE_TYPE_PROBE_REQ;
 		elements = mgmt->u.probe_req.variable;

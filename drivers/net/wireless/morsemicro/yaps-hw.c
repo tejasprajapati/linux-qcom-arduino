@@ -175,11 +175,13 @@ static inline u8 morse_yaps_crc(u32 word)
 {
 	u8 crc = 0;
 	int len = sizeof(word);
+	u8 b;
 
 	/* Mask to look at only non-crc bits in both metadata word and delimiters */
 	word &= 0x1ffffff;
 	while (len--) {
-		crc = crc7_be_byte(crc, (word >> 24) & 0xff);
+		b = (word >> 24) & 0xff;
+		crc = crc7_be(crc, &b, 1);
 		word <<= 8;
 	}
 	return crc >> 1;

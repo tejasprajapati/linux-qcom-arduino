@@ -520,10 +520,13 @@ int morse_dot11_insert_ordered_ies_from_ies_mask(struct sk_buff *skb, u8 *pos,
 	int ies_len = 0;
 	int ampe_len = 0;
 
+	const u8 *variable = skb->data;
+	size_t variable_len = skb->len;
+
 	if (!ies_mask)
 		return 0;
 
-	if (ieee80211_is_s1g_short_beacon(frame_control) ||
+	if (ieee80211_is_s1g_short_beacon(frame_control, variable, variable_len) ||
 	    (le16_to_cpu(frame_control) & IEEE80211_FC_COMPRESS_SSID)) {
 		ies_order_table = morse_ext_s1g_short_beacon_ies_order;
 		ies_order_table_len = ARRAY_SIZE(morse_ext_s1g_short_beacon_ies_order);

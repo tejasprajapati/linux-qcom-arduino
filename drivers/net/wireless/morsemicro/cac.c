@@ -9,6 +9,12 @@
 #include "mac.h"
 #include "debug.h"
 
+/* Provide from_timer compatibility when kernel exposes timer_container_of only */
+#ifndef from_timer
+#define from_timer(var, callback_timer, timer_fieldname) \
+	container_of(callback_timer, typeof(*var), timer_fieldname)
+#endif
+
 #define MORSE_CAC_DBG(_m, _f, _a...)	morse_dbg(FEATURE_ID_CAC, _m, _f, ##_a)
 #define MORSE_CAC_INFO(_m, _f, _a...)	morse_info(FEATURE_ID_CAC, _m, _f, ##_a)
 #define MORSE_CAC_WARN(_m, _f, _a...)	morse_warn(FEATURE_ID_CAC, _m, _f, ##_a)
@@ -229,7 +235,7 @@ int morse_cac_deinit(struct morse_vif *mors_vif)
 	if (!mors_vif->ap)
 		return 0;
 
-	del_timer_sync(&cac->timer);
+	timer_delete_sync(&cac->timer);
 
 	return 0;
 }

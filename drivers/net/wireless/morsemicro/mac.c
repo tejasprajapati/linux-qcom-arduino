@@ -9,6 +9,7 @@
 #include <net/mac80211.h>
 #include <asm/div64.h>
 #include <linux/kernel.h>
+#include <linux/timer.h>
 
 #include "morse.h"
 #include "mac.h"
@@ -44,6 +45,13 @@
 #endif
 #include "led.h"
 #include "monitor.h"
+
+
+/* Provide from_timer compatibility when kernel exposes timer_container_of only */
+#ifndef from_timer
+#define from_timer(var, callback_timer, timer_fieldname) \
+	container_of(callback_timer, typeof(*var), timer_fieldname)
+#endif
 
 #define RATE(rate100m, _flags) { \
 	.bitrate = (rate100m), \
@@ -2430,7 +2438,7 @@ static int morse_mac_driver_restart(struct morse *mors)
  * ignore_s1g_channel() - Mark an S1G channel as 'ignored' in this regulatory domain.
  *
  * As cfg80211 will consider a channel to be unusable if any sub-channel is disabled, the custom
- * flag @ref IEEE80211_CHAN_IGNORE is used to mark this channel as unusable (propagated to
+ * flag @ref IEEE80211_CHAN_DISABLED is used to mark this channel as unusable (propagated to
  * userspace).
  */
 static void ignore_s1g_channel(struct ieee80211_hw *hw, u32 freq_khz, u32 bw_mhz)
@@ -2455,10 +2463,10 @@ static void ignore_s1g_channel(struct ieee80211_hw *hw, u32 freq_khz, u32 bw_mhz
 		return;
 	}
 
-	if (ch->flags & IEEE80211_CHAN_IGNORE)
+	if (ch->flags & IEEE80211_CHAN_DISABLED)
 		return;
 
-	ch->flags |= IEEE80211_CHAN_IGNORE;
+	ch->flags |= IEEE80211_CHAN_DISABLED;
 	MORSE_INFO(mors, "%s: Channel %dkHz %dMHz %d/%d (S1G/5G) ignored", __func__, freq_khz,
 		  bw_mhz, op_chan_s1g, op_chan_5g);
 }
@@ -3152,7 +3160,7 @@ static void morse_mac_ops_remove_interface(struct ieee80211_hw *hw, struct ieee8
 		goto exit;
 	}
 
-	del_timer_sync(&mors_vif->chswitch_timer);
+	timer_delete_sync(&mors_vif->chswitch_timer);
 	flush_delayed_work(&mors_vif->ecsa_chswitch_work);
 
 	/* If data TX is stopped, the LMAC will eventually send the
@@ -3368,7 +3376,7 @@ static int morse_mac_change_channel(struct ieee80211_hw *hw)
 
 		/* This channel should have been marked as unusable on boot */
 		MORSE_WARN_ON(FEATURE_ID_DEFAULT,
-			((conf->chandef.chan->flags & IEEE80211_CHAN_IGNORE) == 0));
+			((conf->chandef.chan->flags & IEEE80211_CHAN_DISABLED) == 0));
 		return ret;
 	}
 
@@ -3465,7 +3473,7 @@ static int morse_mac_ops_config(struct ieee80211_hw *hw, u32 changed)
 
 	channel_valid = conf->chandef.chan &&
 	    ((conf->chandef.chan->flags & IEEE80211_CHAN_DISABLED) == 0) &&
-	    ((conf->chandef.chan->flags & IEEE80211_CHAN_IGNORE) == 0);
+	    ((conf->chandef.chan->flags & IEEE80211_CHAN_DISABLED) == 0);
 
 	if ((changed & IEEE80211_CONF_CHANGE_CHANNEL) && channel_valid) {
 		err = morse_mac_change_channel(hw);
@@ -3495,7 +3503,8 @@ exit:
 }
 
 /* Return Tx power only when channel is configured and is the same as one in hw->conf */
-static int morse_mac_ops_get_txpower(struct ieee80211_hw *hw, struct ieee80211_vif *vif, int *dbm)
+static int morse_mac_ops_get_txpower(struct ieee80211_hw *hw, struct ieee80211_vif *vif, 
+	unsigned int link_id, int *dbm)
 {
 	int err;
 	struct morse *mors = hw->priv;
@@ -6453,7 +6462,7 @@ static int morse_stale_tx_status_timer_finish(struct morse *mors)
 
 	mors->stale_status.enabled = 0;
 
-	del_timer_sync(&mors->stale_status.timer);
+	timer_delete_sync(&mors->stale_status.timer);
 
 	return 0;
 }

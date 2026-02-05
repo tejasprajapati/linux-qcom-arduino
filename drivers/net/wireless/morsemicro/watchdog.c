@@ -179,8 +179,11 @@ int morse_watchdog_init(struct morse *mors, int interval_s,
 {
 	int ret = 0;
 
+#if 0
 	hrtimer_init(&mors->watchdog.timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	mors->watchdog.timer.function = &morse_watchdog_fire;
+#endif
+	hrtimer_setup(&mors->watchdog.timer, morse_watchdog_fire, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 
 	mors->watchdog.interval_secs = interval_s;
 	mors->watchdog.ping = ping;
