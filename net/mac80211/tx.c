@@ -5314,8 +5314,13 @@ ieee80211_beacon_get_ap(struct ieee80211_hw *hw,
 	struct sk_buff *skb = NULL;
 	u16 csa_off_base = 0;
 	int mbssid_len;
+	bool short_beacon = (vif->bss_conf.dtim_period > 0);
 
-	if (beacon->cntdwn_counter_offsets[0]) {
+	if (ap->ps.dtim_count > 0)
+		short_beacon = ((ap->ps.dtim_count - 1) != 0);
+
+	/* Do not count channel switch count for short beacons */
+	if (beacon->cntdwn_counter_offsets[0] && !short_beacon) {
 		if (!is_template)
 			ieee80211_beacon_update_cntdwn(vif, link->link_id);
 
