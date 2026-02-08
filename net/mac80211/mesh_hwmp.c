@@ -190,6 +190,9 @@ static int mesh_path_sel_frame_tx(enum mpath_frame_type action, u8 flags,
 		pos += 4;
 	}
 
+	if (sdata->u.mesh.mfp == IEEE80211_MESH_MFP_DISABLED)
+		IEEE80211_SKB_CB(skb)->flags |= IEEE80211_TX_INTFL_DONT_ENCRYPT;
+
 	ieee80211_tx_skb(sdata, skb);
 	return 0;
 }
@@ -303,6 +306,15 @@ void ieee80211s_update_metric(struct ieee80211_local *local,
 	struct rate_info rinfo;
 
 	failed = !(txinfo->flags & IEEE80211_TX_STAT_ACK);
+	if (!ewma_mesh_fail_avg_read(&sta->mesh->fail_avg)) {
+		/* If the average value in mesh metrics calculation
+		 * has been rounded to 0 (success), this resets it to
+		 * the smallest nonzero value to avoid a case where a
+		 * single failure would result in an avg value that goes
+		 * beyond the value of 95 (Link Failure Threshold)
+		 ewma_mesh_fail_avg_add(&sta->mesh->fail_avg, 1);
+		 */
+	}
 
 	/* moving average, scaled to 100.
 	 * feed failure as 100 and success as 0
