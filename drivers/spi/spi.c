@@ -1059,7 +1059,8 @@ static void spi_toggle_csgpiod(struct spi_device *spi, u8 idx, bool enable, bool
 		gpiod_set_value_cansleep(spi_get_csgpiod(spi, idx), !enable);
 	else
 		/* Polarity handled by GPIO library */
-		gpiod_set_value_cansleep(spi_get_csgpiod(spi, idx), activate);
+		gpiod_set_value_cansleep(spi_get_csgpiod(spi, idx),
+			(spi->controller->flags & SPI_CONTROLLER_ENABLE_CS_GPIOD) ? enable : activate);
 
 	if (activate)
 		spi_delay_exec(&spi->cs_setup, NULL);
