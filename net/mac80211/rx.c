@@ -1382,6 +1382,7 @@ static void ieee80211_rx_reorder_ampdu(struct ieee80211_rx_data *rx,
 		    !test_bit(tid, rx->sta->ampdu_mlme.agg_session_valid) &&
 		    !test_and_set_bit(tid, rx->sta->ampdu_mlme.unexpected_agg))
 			ieee80211_send_delba(rx->sdata, rx->sta->sta.addr, tid,
+						 false,
 					     WLAN_BACK_RECIPIENT,
 					     WLAN_REASON_QSTA_REQUIRE_SETUP);
 		goto dont_reorder;
