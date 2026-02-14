@@ -508,6 +508,36 @@
 	status = "okay";
 };
 
+/**
+ * Enable only after confirmation that SDHC2 can work with 3.3V signaling, please update the power supplies as well
+ * Modify the reset and power GPIOs as well, if needed 
+&sdhc_2 {
+	vmmc-supply = <&pm4125_l21>;
+	vqmmc-supply = <&pm4125_l4>;
+	pinctrl-0 = <&sdc2_state_on>;
+	pinctrl-1 = <&sdc2_state_off>;
+	pinctrl-names = "default", "sleep";
+	disable-wp;
+	non-removable;
+	supports-sdio;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	mm6108_sdio: mm6108_sdio@0 {
+		compatible = "morse,mm610x";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mm6108_pins_default>;
+		reset-gpios = <&tlmm 87 GPIO_ACTIVE_HIGH>;
+		power-gpios = <&tlmm 88 GPIO_ACTIVE_LOW>,
+					  <&tlmm 89 GPIO_ACTIVE_LOW>;
+		reg = <0>;
+		bus-width = <4>;
+		status = "okay";
+	};
+};
+*/
+
 &tlmm {
 	jmisc_gpio28: jmisc-gpio28-state {
 		pins = "gpio28";
@@ -683,6 +713,26 @@
 		pinctrl-0 = <&spidev_gpio37>;
 	};
 };
+
+/* Enable only after confirmation, please update the reset and power GPIOs as well
+&spi0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0_pins>;
+	status = "okay";
+
+	mm6108: mm6108@0 {
+		compatible = "morse,mm610x-spi";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mm6108_spi_pins>;
+		reg = <0>;
+		reset-gpios = <&tlmm 10 GPIO_ACTIVE_HIGH>;
+		power-gpios = <&tlmm 11 GPIO_ACTIVE_HIGH>,
+						<&tlmm 12 GPIO_ACTIVE_HIGH>;
+		spi-irq-gpios = <&tlmm 13 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+*/
 
 &spmi_bus {
 	pmic@0 {
