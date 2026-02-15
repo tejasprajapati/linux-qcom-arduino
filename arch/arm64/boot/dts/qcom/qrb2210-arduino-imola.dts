@@ -116,8 +116,6 @@
 			linux,default-trigger = "none";
 			default-state = "off";
 		};
-
-
 	};
 
 	/* PM2250 charger out, supplied by VBAT */
@@ -608,6 +606,38 @@
 		output-disable;
 		bias-pull-up;
 	};
+
+	mm6108_pins: mm6108-pins {
+		/* Sub-node for the Reset Pin (Output) */
+		reset_cfg {
+			pins = "gpio82";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-disable;      /* Reset is driven high/low, no pull needed */
+		};
+
+		/* Sub-node for the IRQ Pin (Input) */
+		irq_cfg {
+			pins = "gpio86";
+			function = "gpio";
+			input-enable;      /* Explicitly set as input */
+			bias-pull-down;    /* Prevents floating interrupts */
+		};
+	};
+
+	gpio18_interrupt: gpio18-interrupt-state {
+		pins = "gpio18";
+		function = "gpio";
+		bias-pull-up;
+		output-disable;
+	};
+
+	gpio28_interrupt: gpio28-interrupt-state {
+		pins = "gpio28";
+		function = "gpio";
+		bias-pull-up;
+		output-disable;
+	};
 };
 
 &scm {
@@ -714,25 +744,23 @@
 	};
 };
 
-/* Enable only after confirmation, please update the reset and power GPIOs as well
+/* Enable only after confirmation, please update the reset and power GPIOs only power gpios are not required*/
 &spi0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi0_pins>;
 	status = "okay";
 
 	mm6108: mm6108@0 {
 		compatible = "morse,mm610x-spi";
 		pinctrl-names = "default";
-		pinctrl-0 = <&mm6108_spi_pins>;
+		pinctrl-0 = <&mm6108_pins>;
 		reg = <0>;
-		reset-gpios = <&tlmm 10 GPIO_ACTIVE_HIGH>;
-		power-gpios = <&tlmm 11 GPIO_ACTIVE_HIGH>,
+		reset-gpios = <&tlmm 82 GPIO_ACTIVE_HIGH>;
+/*		power-gpios = <&tlmm 11 GPIO_ACTIVE_HIGH>,
 						<&tlmm 12 GPIO_ACTIVE_HIGH>;
-		spi-irq-gpios = <&tlmm 13 GPIO_ACTIVE_HIGH>;
+*/
+		spi-irq-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
 };
-*/
 
 &spmi_bus {
 	pmic@0 {
