@@ -118,6 +118,41 @@
 		};
 	};
 
+	spi_bitbang {
+		compatible = "spi-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi0_default>;
+
+		/* Map the raw pins to SPI functions */
+		miso-gpios = <&tlmm 0 GPIO_ACTIVE_HIGH>;
+		mosi-gpios = <&tlmm 1 GPIO_ACTIVE_HIGH>;
+		sck-gpios = <&tlmm 2 GPIO_ACTIVE_HIGH>;
+		cs-gpios = <&tlmm 3 GPIO_ACTIVE_LOW>;
+		num-chipselects = <1>;
+
+		/* Your Morse Micro Chip */
+		mm6108: mm6108@0 {
+			compatible = "morse,mm610x-spi";
+			reg = <0>; /* Matches chip select 0 */
+
+			/* Max speed for software bitbanging is lower than hardware */
+			spi-max-frequency = <10000000>;
+
+			/* Reusing the pin definitions already in your file */
+			pinctrl-names = "default";
+			pinctrl-0 = <&mm6108_pins>;
+
+			reset-gpios = <&tlmm 82 GPIO_ACTIVE_HIGH>;
+			spi-irq-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>;
+
+			status = "okay";
+		};
+	};
+
 	/* PM2250 charger out, supplied by VBAT */
 	vph_pwr: regulator-vph-pwr {
 		compatible = "regulator-fixed";
@@ -607,6 +642,14 @@
 		bias-pull-up;
 	};
 
+
+	spi0_default: spi0-default-state {
+		pins = "gpio0", "gpio1", "gpio2", "gpio3";
+		function = "gpio";
+		drive-strength = <16>;
+		bias-pull-up;
+	};
+
 	mm6108_pins: mm6108-pins {
 		/* Sub-node for the Reset Pin (Output) */
 		reset_cfg {
@@ -645,7 +688,7 @@
 };
 
 &i2c0 {
-	status = "okay";
+	status = "disabled";
 	clock-frequency = <100000>;
 	/delete-property/ dmas;
 };
@@ -746,20 +789,20 @@
 
 /* Enable only after confirmation, please update the reset and power GPIOs only power gpios are not required*/
 &spi0 {
-	status = "okay";
-
+	status = "disabled";
+/*
 	mm6108: mm6108@0 {
 		compatible = "morse,mm610x-spi";
 		pinctrl-names = "default";
 		pinctrl-0 = <&mm6108_pins>;
 		reg = <0>;
 		reset-gpios = <&tlmm 82 GPIO_ACTIVE_HIGH>;
-/*		power-gpios = <&tlmm 11 GPIO_ACTIVE_HIGH>,
+		power-gpios = <&tlmm 11 GPIO_ACTIVE_HIGH>,
 						<&tlmm 12 GPIO_ACTIVE_HIGH>;
-*/
 		spi-irq-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
+*/
 };
 
 &spmi_bus {
