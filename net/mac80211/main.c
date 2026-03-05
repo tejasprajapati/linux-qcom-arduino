@@ -795,14 +795,32 @@ struct ieee80211_hw *ieee80211_alloc_hw_nm(size_t priv_data_len,
 	if (WARN_ON(!ops->tx || !ops->start || !ops->stop || !ops->config ||
 		    !ops->add_interface || !ops->remove_interface ||
 		    !ops->configure_filter || !ops->wake_tx_queue))
+	{
+		pr_err("mac80211: Missing mandatory ops: %s%s%s%s%s%s%s%s at file %s:%d\n",
+			ops->tx ? "" : " tx",
+			ops->start ? "" : " start",
+			ops->stop ? "" : " stop",
+			ops->config ? "" : " config",
+			ops->add_interface ? "" : " add_interface",
+			ops->remove_interface ? "" : " remove_interface",
+			ops->configure_filter ? "" : " configure_filter",
+			ops->wake_tx_queue ? "" : " wake_tx_queue",
+			__FILE__, __LINE__);
 		return NULL;
+	}
 
 	if (WARN_ON(ops->sta_state && (ops->sta_add || ops->sta_remove)))
+	{
+		pr_err("mac80211: sta_state callback is not allowed together with sta_add or sta_remove at file %s:%d\n", __FILE__, __LINE__);
 		return NULL;
+	}
 
 	if (WARN_ON(!!ops->link_info_changed != !!ops->vif_cfg_changed ||
 		    (ops->link_info_changed && ops->bss_info_changed)))
+	{
+		pr_err("mac80211: link_info_changed callback must be used together with vif_cfg_changed, and bss_info_changed must not be used together with link_info_changed at file %s:%d\n", __FILE__, __LINE__);
 		return NULL;
+	}
 
 	/* check all or no channel context operations exist */
 	if (ops->add_chanctx == ieee80211_emulate_add_chanctx &&
