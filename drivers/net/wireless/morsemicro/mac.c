@@ -2099,6 +2099,41 @@ void morse_mac_schedule_probe_req(struct ieee80211_vif *vif)
 	mors_vif->waiting_for_probe_req_sched = false;
 }
 
+/* Dummy Channel Context Callbacks for modern mac80211 compatibility (Kernel 6.x) */
+
+static int morse_mac_ops_add_chanctx(struct ieee80211_hw *hw,
+                                     struct ieee80211_chanctx_conf *conf)
+{
+    /* Single-channel mode doesn't need complex context tracking */
+    return 0; /* Return 0 for success */
+}
+
+static void morse_mac_ops_remove_chanctx(struct ieee80211_hw *hw,
+                                         struct ieee80211_chanctx_conf *conf)
+{
+}
+
+static void morse_mac_ops_change_chanctx(struct ieee80211_hw *hw,
+                                         struct ieee80211_chanctx_conf *conf,
+                                         u32 changes)
+{
+}
+
+static int morse_mac_ops_assign_vif_chanctx(struct ieee80211_hw *hw,
+                                            struct ieee80211_vif *vif,
+                                            struct ieee80211_bss_conf *bss_conf,
+                                            struct ieee80211_chanctx_conf *chanctx_conf)
+{
+    return 0; /* Return 0 for success */
+}
+
+static void morse_mac_ops_unassign_vif_chanctx(struct ieee80211_hw *hw,
+                                               struct ieee80211_vif *vif,
+                                               struct ieee80211_bss_conf *bss_conf,
+                                               struct ieee80211_chanctx_conf *chanctx_conf)
+{
+}
+
 static void morse_mac_ops_tx(struct ieee80211_hw *hw,
 			     struct ieee80211_tx_control *control, struct sk_buff *skb)
 {
@@ -5044,6 +5079,11 @@ static struct ieee80211_ops mors_ops = {
 	.sta_statistics = morse_sta_tx_rate_stats,
 	.get_expected_throughput = morse_get_expected_throughput,
 #endif
+    .add_chanctx = morse_mac_ops_add_chanctx,
+    .remove_chanctx = morse_mac_ops_remove_chanctx,
+    .change_chanctx = morse_mac_ops_change_chanctx,
+    .assign_vif_chanctx = morse_mac_ops_assign_vif_chanctx,
+    .unassign_vif_chanctx = morse_mac_ops_unassign_vif_chanctx,
 
 };
 
@@ -7001,18 +7041,14 @@ static struct morse *morse_ieee80211_create(size_t priv_size, struct device *dev
 	struct ieee80211_hw *hw;
 	struct morse *mors;
 
-#if KERNEL_VERSION(5, 9, 0) <= MAC80211_VERSION_CODE
 	if (enable_airtime_fairness)
 		mors_ops.wake_tx_queue = morse_mac_ops_wake_tx_queue;
-#endif
-#if KERNEL_VERSION(6, 2, 0) <= MAC80211_VERSION_CODE
 	/* mac80211 has dropped support for TX push path and has fully switched over to the
 	 * internal TX queue (iTXQ) implementation, hence wake_tx_queue() callback is now
 	 * mandatory
 	 */
 	else
 		mors_ops.wake_tx_queue = ieee80211_handle_wake_tx_queue;
-#endif
 
 	/* User disabled HW-crypto - fallback to software crypto */
 	/* Encryption and decryption must be done on the host in Thin LMAC mode */

@@ -37,6 +37,7 @@ static int __init morse_init(void)
 	int ret = 0;
 
 	pr_info("morse micro driver registration. Version %s\n", DRV_VERSION);
+	pr_err("====== MORSE DRIVER COMPILED ON 5-3-26 AT 22:15:00 ======\n");
 
 	/*
 	 * Maintain backwards compatibility (for now)

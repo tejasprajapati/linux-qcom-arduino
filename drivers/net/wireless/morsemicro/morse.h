@@ -14,6 +14,13 @@
 #include <linux/version.h>
 #include <linux/crc32.h>
 #include <linux/notifier.h>
+
+#ifdef MAC80211_BACKPORT_VERSION_CODE
+#define MAC80211_VERSION_CODE MAC80211_BACKPORT_VERSION_CODE
+#else
+#define MAC80211_VERSION_CODE LINUX_VERSION_CODE
+#endif
+
 #if KERNEL_VERSION(4, 9, 81) < LINUX_VERSION_CODE
 #include <linux/nospec.h>
 #endif
@@ -42,12 +49,6 @@
 #include "uaccess.h"
 #endif
 #include "page_slicing.h"
-
-#ifdef MAC80211_BACKPORT_VERSION_CODE
-#define MAC80211_VERSION_CODE MAC80211_BACKPORT_VERSION_CODE
-#else
-#define MAC80211_VERSION_CODE LINUX_VERSION_CODE
-#endif
 
 #define MORSE_DRIVER_SEMVER_MAJOR 54
 #define MORSE_DRIVER_SEMVER_MINOR 0
